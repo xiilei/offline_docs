@@ -71,9 +71,9 @@ EXTENSIONS = {
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'scrapy.pipelines.images.ImagesPipeline': 1,
-   # 'scrapy.pipelines.files.FilesPipeline': 1,
    'offline_docs.pipelines.CssPipeline': 2,
    'offline_docs.pipelines.JsPipeline': 3,
+   'offline_docs.pipelines.DocPipeline':100,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
