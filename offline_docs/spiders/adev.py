@@ -7,8 +7,8 @@ from offline_docs.items import DocItem
 
 class AdevSpider(CrawlSpider):
     name = 'adev'
-    allowed_domains = ['localhost']
-    start_urls = ['http://localhost/scrapytest/index.html']
+    allowed_domains = ['google.com','googleapi.com','developer.android.com']
+    start_urls = ['http://developer.android.com/training/index.html']
 
     rules=(
         Rule(LinkExtractor(allow=('.*\.html$',),tags='a',attrs='href'),callback='parse_html'),
@@ -23,7 +23,7 @@ class AdevSpider(CrawlSpider):
         item['url'] = response.url
 
         urls_dict = {
-            'image_urls':('//img/@src',''),
+            'image_urls':('//img/@src','image_raw_urls'),
             'css_urls':('//link[@type="text/css"]/@href','css_raw_urls'),
             'js_urls':('//script[@type="text/javascript"]/@src','js_raw_urls'),
         }

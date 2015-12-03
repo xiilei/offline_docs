@@ -19,13 +19,13 @@ NEWSPIDER_MODULE = 'offline_docs.spiders'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'offline_docs (learning your technology from china)'
 DOCS_STORE = os.path.join(BASE_PATH,'docs')
-IMAGES_STORE = os.path.join(DOCS_STORE,'images')
+ASSETS_STORE = os.path.join(DOCS_STORE,'assets')
+IMAGES_STORE = ASSETS_STORE
 
 # FILES_STORE = os.path.join(DOCS_STORE,'assets')
 # FILES_URLS_FIELD = 'assets_urls'
 # FILES_RESULT_FIELD = 'assets'
 
-ASSETS_STORE = os.path.join(DOCS_STORE,'assets')
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS=32
 

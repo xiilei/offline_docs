@@ -10,6 +10,7 @@ import scrapy
 
 class DocItem(scrapy.Item):
     image_urls = scrapy.Field()
+    image_raw_urls = scrapy.Field()
     images = scrapy.Field()
 
     js_urls = scrapy.Field()
