@@ -6,6 +6,7 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import os
 import hashlib
+import six
 from six.moves.urllib.parse import urlparse
 
 from scrapy.http import Request
@@ -45,6 +46,7 @@ class CssPipeline(AssetsPipeline):
     ASSETS_RESULT_FIELD = 'css_files'
 
 class JsPipeline(AssetsPipeline):
+
     MEDIA_NAME = 'javascript'
     ASSETS_TYPE = 'js'
     ASSETS_URLS_FIELD = 'js_urls'
@@ -93,7 +95,9 @@ class DocPipeline(object):
             for sf in save_files:
                 if len(raw_urls) <=i:
                     break
-                item['body'] = item['body'].replace(raw_urls[i],basepath+sf.get('path',''))
+                if type(item['body']) is not unicode:
+                    item['body'] = item['body'].decode('utf-8')
+                item['body'] =item['body'].replace(raw_urls[i],basepath+sf.get('path',''))
                 i=i+1
         return item
 

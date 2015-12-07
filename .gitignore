@@ -59,4 +59,5 @@ target/
 docs/assets/css
 docs/assets/js
 docs/assets/full
+docs/**/*.html
 
