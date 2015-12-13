@@ -6,10 +6,12 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import os
 import hashlib
-import six
 from six.moves.urllib.parse import urlparse
 
+from bs4 import BeautifulSoup
+
 from scrapy.http import Request
+from scrapy.selector import Selector
 from scrapy.pipelines.files import FilesPipeline
 from scrapy.exceptions import NotConfigured
 
@@ -63,6 +65,12 @@ class DocPipeline(object):
         'image_raw_urls':'images',
     }
 
+    SEL_FIELDS = {
+        'link':({'type':'text/css'},'href','css_raw_urls','css_files'),
+        'script':({'type':'text/javascript'},'src','js_raw_urls','js_files'),
+        'img':(None,'src','image_raw_urls','images'),
+    }
+
     @classmethod
     def from_crawler(cls, crawler):
         pipe = cls()
@@ -71,33 +79,56 @@ class DocPipeline(object):
         return pipe
 
     def process_item(self,item,spider):
-        path = os.path.normpath(urlparse(item['url']).path[1:])
+        path = self.get_html_filepath(urlparse(item['url']).path)
         filename = os.path.join(self.DOCS_STORE,path)
         dirname = os.path.dirname(filename)
         if not os.path.isdir(dirname):
             os.makedirs(dirname,0o755)
 
         deep = len(path.split('/'))-1
-        item = self.process_assets(item,'%s%s/' % ('../'*deep,os.path.basename(self.ASSETS_STORE)))
+        item = self.process_path(item,'%s%s/' % ('../'*deep,os.path.basename(self.ASSETS_STORE)))
         with open(filename,'wb') as f:
             f.write(item['body'].encode('utf-8'))
 
         return item
 
-    #Rude way
-    def process_assets(self,item,basepath):
-        for k,v in self.FIELDS.items():
-            raw_urls = item.get(k)
-            save_files = item.get(v)
-            if not raw_urls or not save_files or not isinstance(save_files,list):
-                continue
-            i = 0
-            for sf in save_files:
-                if len(raw_urls) <=i:
-                    break
-                if type(item['body']) is not unicode:
-                    item['body'] = item['body'].decode('utf-8')
-                item['body'] =item['body'].replace(raw_urls[i],basepath+sf.get('path',''))
-                i=i+1
+    def get_html_filepath(self,path):
+        path = os.path.normpath(path)
+        if path.endswith('/'):
+            path = path+'index.html'
+        elif path.endswith('.html') or path.endswith('.htm'):
+            pass
+        else:
+            path = path+'.html'
+        if path.startswith('/'):
+            path = path[1:]
+        return path
+
+    def pre_urls_dict(self,raw_urls,save_path):
+        if len(raw_urls)!=len(save_path):
+            raise TypeError('raw_urls and save_path length not equal')
+        urls_dict = dict()
+        i = 0
+        for url in raw_urls:
+            urls_dict[url] = save_path[i]['path']
+            i=i+1
+        return urls_dict
+
+    def process_path(self,item,basepath,urlpath):
+        soup = BeautifulSoup(item['body'],'lxml')
+        for find_tag,v in self.SEL_FIELDS.items():
+            find_attr,attr,raw_field,save_field = v
+            urls_dict = self.pre_urls_dict(item.get(raw_field),item.get(save_field))
+            for tag in soup.find_all(find_tag,find_attr):
+                value = urls_dict.get(tag[attr])
+                if not value:
+                    continue
+                tag[attr] = basepath+value
+        for a_tag in soup.find_all('a'):
+            if a_tag['href']:
+                a_tag['href'] = self.get_html_filepath(a_tag['href'])
+        item['body'] = soup.prettify()
         return item
+
+
 

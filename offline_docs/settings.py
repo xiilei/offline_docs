@@ -22,9 +22,7 @@ DOCS_STORE = os.path.join(BASE_PATH,'docs')
 ASSETS_STORE = os.path.join(DOCS_STORE,'assets')
 IMAGES_STORE = ASSETS_STORE
 
-# FILES_STORE = os.path.join(DOCS_STORE,'assets')
-# FILES_URLS_FIELD = 'assets_urls'
-# FILES_RESULT_FIELD = 'assets'
+# LOG_FILE = os.path.join(BASE_PATH,'all-trace.log')
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS=32
