@@ -22,7 +22,13 @@ DOCS_STORE = os.path.join(BASE_PATH,'docs')
 ASSETS_STORE = os.path.join(DOCS_STORE,'assets')
 IMAGES_STORE = ASSETS_STORE
 
-# LOG_FILE = os.path.join(BASE_PATH,'all-trace.log')
+# 7 days of delay for files expiration
+FILES_EXPIRES = 7
+
+# 7 days of delay for images expiration
+IMAGES_EXPIRES = 7
+
+LOG_FILE = os.path.join(BASE_PATH,'all-trace.log')
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS=32

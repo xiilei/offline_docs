@@ -86,14 +86,17 @@ class DocPipeline(object):
             os.makedirs(dirname,0o755)
 
         deep = len(path.split('/'))-1
-        item = self.process_path(item,'%s%s/' % ('../'*deep,os.path.basename(self.ASSETS_STORE)))
+        item = self.process_path(item,'%s%s/' % ('../'*deep,os.path.basename(self.ASSETS_STORE)),path)
         with open(filename,'wb') as f:
             f.write(item['body'].encode('utf-8'))
 
         return item
 
-    def get_html_filepath(self,path):
+    def get_html_filepath(self,path,parent=None):
         path = os.path.normpath(path)
+        parent_path = None
+        if parent:
+            parent_path = os.path.dirname(parent)+'/'
         if path.endswith('/'):
             path = path+'index.html'
         elif path.endswith('.html') or path.endswith('.htm'):
@@ -102,31 +105,48 @@ class DocPipeline(object):
             path = path+'.html'
         if path.startswith('/'):
             path = path[1:]
+        if parent_path and path.startswith(parent_path):
+            path = path[len(parent_path):]
         return path
+
+    def is_htmlfile_path(href):
+        if not href:
+            return False
+        href = href.lstrip()
+        if href.startswith('#') or href.startswith('javascript:')
+            return False
+        proto_index = href.find('://')
+        if proto_index !=-1 and href[:proto_index] not in ('http','https'):
+            return False
+        return href.endswith('.html') or href.endswith('.htm')
 
     def pre_urls_dict(self,raw_urls,save_path):
         if len(raw_urls)!=len(save_path):
             raise TypeError('raw_urls and save_path length not equal')
         urls_dict = dict()
         i = 0
-        for url in raw_urls:
-            urls_dict[url] = save_path[i]['path']
+        for res in save_path:
+            urls_dict[raw_urls[i]] = res['path']
             i=i+1
         return urls_dict
 
-    def process_path(self,item,basepath,urlpath):
+    def process_path(self,item,basepath,path):
         soup = BeautifulSoup(item['body'],'lxml')
         for find_tag,v in self.SEL_FIELDS.items():
             find_attr,attr,raw_field,save_field = v
             urls_dict = self.pre_urls_dict(item.get(raw_field),item.get(save_field))
             for tag in soup.find_all(find_tag,find_attr):
-                value = urls_dict.get(tag[attr])
+                attr_value = tag.attrs.get(attr)
+                if not attr_value:
+                    continue
+                value = urls_dict.get(attr_value)
                 if not value:
                     continue
                 tag[attr] = basepath+value
         for a_tag in soup.find_all('a'):
-            if a_tag['href']:
-                a_tag['href'] = self.get_html_filepath(a_tag['href'])
+            href = a_tag.attrs.get('href')
+            if self.is_htmlfile_path(href):
+                a_tag['href'] = self.get_html_filepath(href,path)
         item['body'] = soup.prettify()
         return item
 
